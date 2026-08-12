@@ -1,5 +1,5 @@
 services:
-  dreeve-wahoo-connector:
+  wahoo-connector:
     # Build locally or pull pre-built image from GitHub Container Registry (GHCR)
     build:
       context: .

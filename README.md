@@ -68,7 +68,7 @@ PORT=8085
 
 ```yaml
 services:
-  dreeve-wahoo-connector:
+  wahoo-connector:
     image: ghcr.io/dreeveapp/dreeve-wahoo-connector:latest
     container_name: dreeve-wahoo-connector
     restart: unless-stopped
