@@ -14,14 +14,6 @@
   <a href="https://github.com/dreeveapp/dreeve-wahoo-connector/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License"></a>
 </p>
 
-> [!IMPORTANT]
-> **🚨 THIS PROJECT HAS MOVED 🚨**
-> 
-> This repository has been officially relocated to **[dreeveapp/dreeve-wahoo-connector](https://github.com/dreeveapp/dreeve-wahoo-connector)**.
-> 
-> Please update your bookmarks, git remotes, and Docker image references to:
-> **`ghcr.io/dreeveapp/dreeve-wahoo-connector:latest`**
-
 ---
 
 `dreeve-wahoo-connector` is a lightweight, containerized tool that connects to the [Wahoo Fitness Cloud API](https://developers.wahooligan.com/) to automatically download your workout activities as standard `.FIT` files into a local directory on your server or NAS.
