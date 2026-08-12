@@ -6,7 +6,6 @@
 
 <p align="center">
 <a href="https://raw.githubusercontent.com/dreeveapp/dreeve-wahoo-connector/refs/heads/main/LICENSE"><img src="https://img.shields.io/github/license/dreeveapp/dreeve-wahoo-connector?color=428f7e&logo=open%20source%20initiative&logoColor=white" alt="License"></a>
-<a href="https://github.com/dreeveapp/dreeve-wahoo-connector/pkgs/container/dreeve-wahoo-connector"><img src="https://img.shields.io/github/v/tag/dreeveapp/dreeve-wahoo-connector?sort=semver&logo=docker&logoColor=white&label=image" alt="Image version"></a>
 <a href="https://docs.dreeve.app"><img src="https://img.shields.io/badge/docs-docs.dreeve.app-428f7e?logo=readthedocs&logoColor=white" alt="Documentation"></a>
 <a href="https://discord.gg/p4zpZyCHNc"><img src="https://img.shields.io/badge/Dreeve-%235865F4?logo=discord&logoColor=%23ffffff&label=%20&labelColor=585858" alt="Discord server"></a>
 </p>
