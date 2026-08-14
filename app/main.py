@@ -712,7 +712,7 @@ def api_status():
     return jsonify(sched_status)
 
 def main():
-    port = int(os.getenv("PORT", "8080"))
+    port = int(os.getenv("PORT", "8085"))
     redirect_uri = os.getenv("WAHOO_REDIRECT_URI", "https://localhost:8085/callback")
     
     use_https = os.getenv("USE_HTTPS", "").lower() in ["true", "1", "yes"] or redirect_uri.startswith("https://")

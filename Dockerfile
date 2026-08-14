@@ -4,7 +4,7 @@ FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DATA_DIR=/data \
-    PORT=8080
+    PORT=8085
 
 # Create working directory and data directories
 WORKDIR /workspace
@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app/ ./app/
 
 # Expose port for Web UI & OAuth Callback
-EXPOSE 8080
+EXPOSE 8085
 
 # Define persistent data volume
 VOLUME ["/data"]
