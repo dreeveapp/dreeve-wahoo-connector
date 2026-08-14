@@ -9,8 +9,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configure Logging
+log_level_name = os.getenv("LOG_LEVEL", "INFO").strip().upper()
+log_level = getattr(logging, log_level_name, logging.INFO)
 logging.basicConfig(
-    level=logging.INFO,
+    level=log_level,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)]
 )
@@ -18,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger("wahoo_connector")
 
 from app.wahoo_client import WahooClient
-from app.sync import load_tokens, save_tokens, load_history, get_all_activities
+from app.sync import load_tokens, save_tokens, load_history, get_all_activities, get_data_paths
 from app.scheduler import scheduler
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -26,7 +28,8 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "wahoo_connector_secret_key_12345
 
 def ensure_ssl_certs():
     """Generate self-signed SSL certificates if they don't exist yet."""
-    config_dir = os.path.join(os.getenv("DATA_DIR", "/data"), "config")
+    paths = get_data_paths()
+    config_dir = os.path.dirname(paths["tokens"])
     os.makedirs(config_dir, exist_ok=True)
     
     cert_path = os.path.join(config_dir, "cert.pem")

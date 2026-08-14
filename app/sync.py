@@ -9,8 +9,8 @@ logger = logging.getLogger("wahoo_connector.sync")
 
 def get_data_paths():
     data_dir = os.getenv("DATA_DIR", "/data")
-    config_dir = os.path.join(data_dir, "config")
-    downloads_dir = os.path.join(data_dir, "downloads")
+    config_dir = os.getenv("STATE_DIR") or os.path.join(data_dir, "config")
+    downloads_dir = os.getenv("WATCH_DIR") or os.getenv("DOWNLOADS_DIR") or os.path.join(data_dir, "downloads")
     
     os.makedirs(config_dir, exist_ok=True)
     os.makedirs(downloads_dir, exist_ok=True)
@@ -59,25 +59,49 @@ def save_history(history: dict):
 def get_all_activities() -> list:
     """
     Scan disk downloads folder and merge with sync_history.json
-    to ensure 100% of files in ./activities are accurately listed in the Web UI.
+    to ensure 100% of downloaded workouts are accurately listed in the Web UI,
+    even if downstream consumers (like Dreeve) move/delete files from the watch folder.
     """
     paths = get_data_paths()
     history = load_history()
     downloaded_map = history.get("downloaded", {})
     activities = []
 
-    if not os.path.exists(paths["downloads"]):
-        return []
+    disk_files = {}
+    if os.path.exists(paths["downloads"]):
+        for fn in os.listdir(paths["downloads"]):
+            if fn.endswith(".fit"):
+                file_path = os.path.join(paths["downloads"], fn)
+                size_bytes = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+                disk_files[fn] = size_bytes
 
-    filenames = os.listdir(paths["downloads"])
-    for fn in filenames:
-        if not fn.endswith(".fit"):
-            continue
+    seen_ids = set()
+
+    # Process all workouts recorded in history
+    for workout_id, hist_entry in downloaded_map.items():
+        str_id = str(workout_id)
+        seen_ids.add(str_id)
+        fn = hist_entry.get("filename") or f"workout_{str_id}.fit"
         
-        file_path = os.path.join(paths["downloads"], fn)
-        size_bytes = os.path.getsize(file_path) if os.path.exists(file_path) else 0
-        size_kb = f"{size_bytes / 1024:.1f} KB"
+        if fn in disk_files:
+            size_bytes = disk_files[fn]
+            size_str = f"{size_bytes / 1024:.1f} KB"
+        else:
+            size_str = "N/A (Processed)"
 
+        starts = hist_entry.get("starts") or "N/A"
+        downloaded_at = hist_entry.get("downloaded_at")
+
+        activities.append({
+            "id": str_id,
+            "starts": starts,
+            "filename": fn,
+            "downloaded_at": downloaded_at,
+            "size_str": size_str
+        })
+
+    # Add any disk files that were not in sync_history
+    for fn, size_bytes in disk_files.items():
         workout_id = fn.replace(".fit", "")
         workout_date = "N/A"
         
@@ -86,18 +110,23 @@ def get_all_activities() -> list:
             workout_date = parts[0]
             workout_id = parts[1].replace(".fit", "")
 
-        hist_entry = downloaded_map.get(workout_id, {})
-        downloaded_at = hist_entry.get("downloaded_at")
-        if not downloaded_at:
+        str_id = str(workout_id)
+        if str_id in seen_ids:
+            continue
+
+        seen_ids.add(str_id)
+        file_path = os.path.join(paths["downloads"], fn)
+        downloaded_at = None
+        if os.path.exists(file_path):
             mtime = os.path.getmtime(file_path)
             downloaded_at = datetime.utcfromtimestamp(mtime).isoformat() + "Z"
 
         activities.append({
-            "id": workout_id,
-            "starts": hist_entry.get("starts") or workout_date,
+            "id": str_id,
+            "starts": workout_date,
             "filename": fn,
             "downloaded_at": downloaded_at,
-            "size_str": size_kb
+            "size_str": f"{size_bytes / 1024:.1f} KB"
         })
 
     activities.sort(key=lambda x: x.get("starts", ""), reverse=True)
@@ -242,7 +271,10 @@ def perform_sync(time_window: str = None) -> dict:
             filename = f"{date_prefix}_workout_{workout_id}.fit"
             dest_path = os.path.join(paths["downloads"], filename)
 
-            if workout_id in downloaded_map and os.path.exists(dest_path):
+            verify_disk = os.getenv("VERIFY_FILES_ON_DISK", "false").lower() in ["true", "1", "yes"]
+            is_already_downloaded = (workout_id in downloaded_map) and (not verify_disk or os.path.exists(dest_path))
+
+            if is_already_downloaded:
                 total_skipped += 1
                 consecutive_existing_count += 1
                 logger.debug(f"Workout {workout_id} ({filename}) already downloaded. Skipping.")
