@@ -148,19 +148,20 @@ class WahooClient:
             response.raise_for_status()
         return response.json()
 
-    def fetch_workouts(self, access_token: str, page: int = 1, per_page: int = 50, order: str = "descending") -> dict:
+    def fetch_workouts(self, access_token: str, page: int = 1, per_page: int = 50) -> dict:
         """
         Fetch workouts for the user in DESCENDING order (newest workouts first).
+        The Wahoo /v1/workouts endpoint returns workouts sorted by starts in
+        descending order by default and does not accept an "order" query param.
         Endpoint: GET https://api.wahooligan.com/v1/workouts
         """
         self.rate_limiter.wait_if_needed()
         headers = {"Authorization": f"Bearer {access_token}"}
         params = {
             "page": page,
-            "per_page": per_page,
-            "order": order
+            "per_page": per_page
         }
-        logger.info(f"Fetching workouts page {page} (per_page={per_page}, order={order})...")
+        logger.info(f"Fetching workouts page {page} (per_page={per_page})...")
         response = requests.get(f"{WAHOO_API_BASE}/workouts", headers=headers, params=params, timeout=30)
         self.rate_limiter.update_from_headers(response.headers)
 

@@ -231,7 +231,7 @@ def perform_sync(time_window: str = None) -> dict:
 
     while not stop_sync:
         try:
-            data = client.fetch_workouts(access_token, page=page, per_page=per_page, order="descending")
+            data = client.fetch_workouts(access_token, page=page, per_page=per_page)
         except Exception as e:
             logger.error(f"Error fetching workouts page {page}: {e}")
             errors.append(f"Page {page} fetch error: {str(e)}")
